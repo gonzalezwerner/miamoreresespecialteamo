@@ -82,10 +82,16 @@
 
     .chapter-card {
       width: min(430px, 100%);
+      max-width: 100%;
       margin-left: auto;
       border-radius: 28px;
       padding: 22px;
       pointer-events: auto;
+      overflow: hidden;
+    }
+
+    .mobile-chapter-shell {
+      display: contents;
     }
 
     .chapter-number {
@@ -108,6 +114,8 @@
       font-size: clamp(1rem, 3.4vw, 1.05rem);
       line-height: 1.72;
       color: #fff1f8;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
 
     .controls {
@@ -343,6 +351,139 @@
       font-style: italic;
     }
 
+    .preloader {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at top, rgba(255, 173, 214, 0.18), transparent 32%),
+        linear-gradient(180deg, rgba(30, 10, 36, 0.98), rgba(11, 5, 16, 0.99));
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+
+    .preloader.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .preloader-card {
+      width: min(560px, 100%);
+      border-radius: 34px;
+      padding: 30px 24px;
+      text-align: center;
+      color: #fff6fb;
+      backdrop-filter: blur(18px);
+      background: linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.06));
+      border: 1px solid rgba(255,255,255,0.16);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.34);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .preloader-card::before {
+      content: '';
+      position: absolute;
+      inset: -20% auto auto -10%;
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 182, 220, 0.22), transparent 70%);
+      filter: blur(8px);
+    }
+
+    .preloader-hearts {
+      font-size: 1.35rem;
+      letter-spacing: 8px;
+      color: #ffb8da;
+      margin-bottom: 10px;
+      animation: floatHearts 2.4s ease-in-out infinite;
+    }
+
+    .preloader-title {
+      margin: 0;
+      font-size: clamp(2rem, 8vw, 3.3rem);
+      line-height: 0.95;
+      font-weight: 500;
+    }
+
+    .preloader-sub {
+      margin: 14px auto 0;
+      max-width: 430px;
+      font-size: 1rem;
+      line-height: 1.7;
+      color: #f7dceb;
+    }
+
+    .preloader-label {
+      margin-top: 24px;
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #ffd5ea;
+    }
+
+    .preloader-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      margin-top: 6px;
+      flex-wrap: wrap;
+    }
+
+    .preloader-input {
+      width: min(260px, 100%);
+      min-height: 52px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.18);
+      outline: none;
+      padding: 0 18px;
+      font-size: 1rem;
+      text-align: center;
+      color: #fff6fb;
+      background: rgba(255,255,255,0.1);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+    }
+
+    .preloader-input::placeholder {
+      color: rgba(255,240,248,0.7);
+    }
+
+    .preloader-enter {
+      min-width: 150px;
+    }
+
+    .preloader-help {
+      margin-top: 14px;
+      font-size: 0.92rem;
+      color: #efd7e4;
+      opacity: 0.9;
+    }
+
+    .preloader-error {
+      min-height: 24px;
+      margin-top: 12px;
+      font-size: 0.92rem;
+      color: #ffd2de;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .preloader-error.visible {
+      opacity: 1;
+    }
+
+    @keyframes floatHearts {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+
     .floating-title {
       position: absolute;
       left: 50%;
@@ -375,10 +516,72 @@
     }
 
     @media (max-width: 900px) {
-      .topbar, .bottom {
+      .topbar {
+        flex-direction: row;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .bottom {
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
       }
+      .brand {
+        padding: 12px 14px;
+        border-radius: 18px;
+        max-width: calc(100% - 148px);
+        min-height: auto;
+      }
+      .brand h1 {
+        font-size: clamp(1.15rem, 5vw, 1.5rem);
+        line-height: 1;
+      }
+      .brand p {
+        display: none;
+      }
+      .music-btn {
+        position: relative;
+        top: 0;
+        right: 0;
+        min-width: 0;
+        width: auto;
+        padding: 10px 14px;
+        min-height: 42px;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        box-shadow: 0 10px 22px rgba(198, 107, 255, 0.24);
+      }
+      .mobile-chapter-shell {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: max(12px, env(safe-area-inset-bottom));
+        z-index: 14;
+        display: block;
+        pointer-events: none;
+      }
+      .chapter-card {
+        width: 100%;
+        max-width: 100%;
+        margin-left: 0;
+        padding: 18px;
+        border-radius: 26px;
+        background: linear-gradient(180deg, rgba(27, 10, 33, 0.88), rgba(17, 8, 26, 0.94));
+        border: 1px solid rgba(255,255,255,0.16);
+        box-shadow: 0 24px 60px rgba(0,0,0,0.34);
+      }
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      button { width: 100%; }
+      .chapter-dots { align-self: center; }
+      .hint {
+        max-width: none;
+        text-align: left;
+      }
+    }
       .brand { padding: 16px; border-radius: 22px; }
       .chapter-card { width: 100%; margin-left: 0; padding: 18px; border-radius: 24px; }
       .controls { display: grid; grid-template-columns: 1fr 1fr; }
@@ -388,7 +591,123 @@
     }
 
     @media (max-width: 560px) {
+      .preloader-card {
+        padding: 24px 16px;
+        border-radius: 26px;
+      }
+      .preloader-sub {
+        font-size: 0.95rem;
+        line-height: 1.6;
+      }
+      .preloader-row {
+        flex-direction: column;
+      }
+      .preloader-input,
+      .preloader-enter {
+        width: 100%;
+      }
+
+      
+      .overlay {
+        gap: 10px;
+        padding-top: max(12px, env(safe-area-inset-top));
+        padding-bottom: calc(max(12px, env(safe-area-inset-bottom)) + 240px);
+      }
+      .topbar {
+        gap: 8px;
+      }
+      .brand {
+        padding: 10px 12px;
+        max-width: calc(100% - 126px);
+        border-radius: 16px;
+      }
+      .brand h1 {
+        font-size: 1.05rem;
+      }
       .brand p { display: none; }
+      .music-btn {
+        padding: 9px 12px;
+        min-height: 38px;
+        font-size: 0.82rem;
+        border-radius: 16px;
+      }
+      .mobile-chapter-shell {
+        left: 10px;
+        right: 10px;
+        bottom: max(10px, env(safe-area-inset-bottom));
+      }
+      .chapter-card {
+        width: 100%;
+        max-width: 100%;
+        padding: 14px;
+        border-radius: 22px;
+      }
+      .chapter-number {
+        font-size: 0.76rem;
+        letter-spacing: 1.4px;
+        margin-bottom: 6px;
+      }
+      .chapter-title {
+        font-size: clamp(1.35rem, 6vw, 1.9rem);
+        line-height: 1.06;
+      }
+      .chapter-text {
+        min-height: auto;
+        font-size: 0.95rem;
+        line-height: 1.58;
+        margin-top: 10px;
+      }
+      .bottom {
+        gap: 8px;
+      }
+      .controls {
+        gap: 8px;
+      }
+      .hint {
+        display: none;
+      }
+      .chapter-dots {
+        padding: 11px 14px;
+      }
+    }
+
+    @media (max-width: 390px) {
+      .preloader-card {
+        padding: 22px 14px;
+      }
+      .preloader-title {
+        font-size: 1.7rem;
+      }
+      .preloader-sub {
+        font-size: 0.9rem;
+      }
+
+      
+      .overlay {
+        padding-bottom: calc(max(10px, env(safe-area-inset-bottom)) + 230px);
+      }
+      .brand {
+        max-width: calc(100% - 118px);
+      }
+      .music-btn {
+        font-size: 0.76rem;
+        padding: 8px 10px;
+      }
+      .chapter-card {
+        padding: 12px;
+        border-radius: 18px;
+      }
+      .chapter-number {
+        font-size: 0.72rem;
+      }
+      .chapter-title {
+        font-size: 1.2rem;
+      }
+      .chapter-text {
+        font-size: 0.9rem;
+        line-height: 1.5;
+      }
+    }
       .chapter-title { font-size: clamp(1.65rem, 7vw, 2.2rem); }
       .chapter-text { min-height: 132px; font-size: 0.98rem; }
       .hint { font-size: 0.84rem; padding: 12px 14px; }
@@ -398,10 +717,27 @@
 </head>
 <body>
   <div id="app">
+    <div class="preloader" id="preloader">
+      <div class="preloader-card">
+        <div class="preloader-hearts">♥ ♥ ♥</div>
+        <h2 class="preloader-title">Antes de entrar...</h2>
+        <p class="preloader-sub">
+          Este pequeño universo guarda una historia muy especial.
+          Para abrirlo, escribe la fecha de aquel día bonito en que todo empezó.
+        </p>
+        <div class="preloader-label">Tu contraseña de amor</div>
+        <div class="preloader-row">
+          <input id="datePassword" class="preloader-input" type="text" inputmode="numeric" placeholder="dd/mm/aaaa" maxlength="10" />
+          <button id="enterBtn" class="preloader-enter">Entrar ✨</button>
+        </div>
+        <div class="preloader-help">Escribe la fecha en formato día/mes/año.</div>
+        <div class="preloader-error" id="preloaderError">Esa no es la fecha correcta, intenta con el inicio de esta historia.</div>
+      </div>
+    </div>
     <div id="scene"></div>
     <button id="musicBtn" class="music-btn">🎵 Reproducir música</button>
     <audio id="bgMusic" preload="auto" loop>
-      <source src="audio.mp3" type="audio/mpeg" />
+      <source src="music.mp3" type="audio/mpeg" />
     </audio>
 
     <div class="final-burst" id="finalBurst">
@@ -435,7 +771,9 @@
           <h1>Entre Estrellas</h1>
           <p>Una experiencia romántica en 3D. Cada capítulo es un recuerdo suspendido en el cielo, una caricia hecha luz y un pequeño universo creado para enamorar.</p>
         </div>
+      </div>
 
+      <div class="mobile-chapter-shell">
         <div class="chapter-card">
           <div class="chapter-number" id="chapterNumber"></div>
           <h2 class="chapter-title" id="chapterTitle"></h2>
@@ -509,6 +847,7 @@
 
     const romanticWords = ['amor', 'mi cielo', 'te adoro', 'mi vida', 'besos', 'siempre', 'mi alma', 'te amo', 'mi luz', 'corazón', 'ternura', 'destino'];
 
+    const ACCESS_DATE = '15/03/2026';
     const finalLetterText = `No sé en qué momento exacto dejaste de ser un instante bonito para convertirte en un lugar entero dentro de mi corazón.
 
 Pero aquí estás: en mis pensamientos más suaves, en mis días más luminosos, en esa forma inexplicable que tiene el amor de volver precioso todo lo que toca.
@@ -523,6 +862,10 @@ Y gracias por ser ese pedacito de universo que siempre quiero mirar un rato más
     let currentChapter = 0;
 
     const chapterNumberEl = document.getElementById('chapterNumber');
+    const preloaderEl = document.getElementById('preloader');
+    const datePasswordEl = document.getElementById('datePassword');
+    const enterBtnEl = document.getElementById('enterBtn');
+    const preloaderErrorEl = document.getElementById('preloaderError');
     const bgMusic = document.getElementById('bgMusic');
     const musicBtn = document.getElementById('musicBtn');
     const finalBurstEl = document.getElementById('finalBurst');
@@ -536,6 +879,30 @@ Y gracias por ser ese pedacito de universo que siempre quiero mirar un rato más
     const prevBtn = document.getElementById('prevBtn');
     const nextBtn = document.getElementById('nextBtn');
     const sceneEl = document.getElementById('scene');
+
+    function normalizeDateInput(value) {
+      return value.split(' ').join('').trim();
+    }
+
+    function unlockExperience() {
+      preloaderEl.classList.add('hidden');
+    }
+
+    function validateAccessDate() {
+      const value = normalizeDateInput(datePasswordEl.value);
+      if (value === ACCESS_DATE) {
+        preloaderErrorEl.classList.remove('visible');
+        unlockExperience();
+      } else {
+        preloaderErrorEl.classList.add('visible');
+        datePasswordEl.animate([
+          { transform: 'translateX(0px)' },
+          { transform: 'translateX(-6px)' },
+          { transform: 'translateX(6px)' },
+          { transform: 'translateX(0px)' }
+        ], { duration: 240, iterations: 1 });
+      }
+    }
     letterBodyEl.textContent = '';
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
@@ -927,6 +1294,14 @@ Y gracias por ser ese pedacito de universo que siempre quiero mirar un rato más
     createDots();
 
     bgMusic.volume = 0.55;
+
+    enterBtnEl.addEventListener('click', validateAccessDate);
+    datePasswordEl.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') validateAccessDate();
+    });
+    datePasswordEl.addEventListener('input', () => {
+      preloaderErrorEl.classList.remove('visible');
+    });
 
     async function toggleMusic() {
       try {
