@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#2a1036" />
+  <title>Entre Estrellas</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: Georgia, "Times New Roman", serif;
+      color: #fff6fb;
+      background:
+        radial-gradient(circle at top, rgba(255, 192, 203, 0.28), transparent 30%),
+        linear-gradient(180deg, #2a1036 0%, #110814 58%, #09050c 100%);
+    }
+
+    #app {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #scene {
+      position: absolute;
+      inset: 0;
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      background: linear-gradient(180deg, rgba(8, 2, 16, 0.10), rgba(8, 2, 16, 0.62));
+    }
+
+    .topbar,
+    .bottom {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .brand,
+    .chapter-card,
+    .hint,
+    .chapter-dots {
+      backdrop-filter: blur(14px);
+      background: rgba(255,255,255,0.09);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.24);
+    }
+
+    .brand {
+      max-width: 520px;
+      border-radius: 24px;
+      padding: 18px 20px;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(2rem, 7vw, 4rem);
+      line-height: 0.95;
+      font-weight: 600;
+      text-wrap: balance;
+    }
+
+    .brand p {
+      margin: 10px 0 0;
+      font-size: clamp(0.96rem, 2.8vw, 1rem);
+      line-height: 1.55;
+      color: #f8ddea;
+    }
+
+    .chapter-card {
+      width: min(430px, 100%);
+      margin-left: auto;
+      border-radius: 28px;
+      padding: 22px;
+      pointer-events: auto;
+    }
+
+    .chapter-number {
+      font-size: 0.84rem;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #ffd7e8;
+      margin-bottom: 8px;
+    }
+
+    .chapter-title {
+      margin: 0;
+      font-size: clamp(1.8rem, 6vw, 2.7rem);
+      line-height: 1.02;
+    }
+
+    .chapter-text {
+      margin-top: 14px;
+      min-height: 120px;
+      font-size: clamp(1rem, 3.4vw, 1.05rem);
+      line-height: 1.72;
+      color: #fff1f8;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+      flex-wrap: wrap;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      border-radius: 999px;
+      min-height: 50px;
+      padding: 14px 22px;
+      font-size: 0.98rem;
+      color: #fff;
+      cursor: pointer;
+      background: linear-gradient(135deg, #ff78aa, #c66bff);
+      box-shadow: 0 12px 24px rgba(198, 107, 255, 0.28);
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button:hover { transform: translateY(-2px) scale(1.02); }
+    button:active { transform: translateY(1px) scale(0.99); }
+
+    button.secondary {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: none;
+    }
+
+    .chapter-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 999px;
+      pointer-events: auto;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.28);
+      transition: transform 0.25s ease, background 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .dot.active {
+      background: #ffd5ea;
+      transform: scale(1.24);
+      box-shadow: 0 0 18px 3px rgba(255, 158, 209, 0.7);
+    }
+
+    .hint {
+      max-width: 370px;
+      border-radius: 22px;
+      padding: 14px 16px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #f0dbe7;
+      text-align: right;
+      pointer-events: auto;
+    }
+
+    .music-btn {
+      position: absolute;
+      right: 16px;
+      top: calc(max(16px, env(safe-area-inset-top)) + 8px);
+      z-index: 15;
+      pointer-events: auto;
+      min-width: 132px;
+    }
+
+    .final-letter {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 22px;
+      background: radial-gradient(circle at center, rgba(255, 183, 216, 0.12), rgba(9, 5, 12, 0.82));
+      backdrop-filter: blur(10px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.7s ease, visibility 0.7s ease;
+      pointer-events: none;
+    }
+
+    .final-burst {
+      position: absolute;
+      inset: 0;
+      z-index: 18;
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.6s ease, visibility 0.6s ease;
+      pointer-events: none;
+      background: radial-gradient(circle at center, rgba(255,255,255,0.06), rgba(255, 160, 214, 0.08), transparent 55%);
+    }
+
+    .final-burst.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .burst-core {
+      width: min(44vw, 280px);
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,214,235,0.82) 22%, rgba(255,145,198,0.28) 48%, rgba(255,145,198,0) 72%);
+      filter: blur(2px);
+      transform: scale(0.3);
+      opacity: 0;
+    }
+
+    .final-burst.visible .burst-core {
+      animation: burstPulse 2.4s ease forwards;
+    }
+
+    .constellation-name {
+      position: absolute;
+      top: 14%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      opacity: 0;
+      transition: opacity 0.8s ease 0.9s;
+      text-shadow: 0 0 18px rgba(255, 196, 226, 0.55), 0 0 40px rgba(255, 160, 214, 0.25);
+    }
+
+    .constellation-name strong {
+      display: block;
+      font-size: clamp(2.2rem, 9vw, 5rem);
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      color: #fff4fb;
+    }
+
+    .constellation-name span {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.78rem;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: #ffdce9;
+    }
+
+    .final-burst.visible .constellation-name {
+      opacity: 1;
+    }
+
+    @keyframes burstPulse {
+      0% { transform: scale(0.25); opacity: 0; }
+      18% { transform: scale(0.9); opacity: 1; }
+      42% { transform: scale(1.8); opacity: 0.85; }
+      100% { transform: scale(2.6); opacity: 0; }
+    }
+
+    .final-letter.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .letter-card {
+      width: min(680px, 100%);
+      max-height: min(84vh, 900px);
+      overflow: auto;
+      border-radius: 32px;
+      padding: 28px 24px 24px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,243,250,0.96)),
+        linear-gradient(135deg, rgba(255,192,203,0.4), rgba(255,255,255,0.5));
+      color: #5b2440;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.5);
+      transform: perspective(1200px) rotateX(18deg) scale(0.88);
+      transform-origin: center center;
+      transition: transform 0.8s cubic-bezier(.2,.9,.2,1), opacity 0.8s ease;
+      opacity: 0;
+    }
+
+    .final-letter.visible .letter-card {
+      transform: perspective(1200px) rotateX(0deg) scale(1);
+      opacity: 1;
+    }
+
+    .letter-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .letter-top h3 {
+      margin: 0;
+      font-size: clamp(1.7rem, 5vw, 2.6rem);
+      line-height: 1;
+    }
+
+    .letter-close {
+      min-width: 44px;
+      min-height: 44px;
+      padding: 0 16px;
+      background: linear-gradient(135deg, #ff8db8, #d37dff);
+    }
+
+    .letter-sub {
+      margin: 0 0 16px;
+      font-size: 0.95rem;
+      color: #8a4e69;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .letter-body {
+      font-size: clamp(1rem, 3.6vw, 1.08rem);
+      line-height: 1.9;
+      white-space: pre-line;
+    }
+
+    .letter-sign {
+      margin-top: 18px;
+      font-size: 1.05rem;
+      font-style: italic;
+    }
+
+    .floating-title {
+      position: absolute;
+      left: 50%;
+      top: 44%;
+      transform: translate(-50%, -50%);
+      width: calc(100% - 40px);
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 1s ease;
+      text-shadow: 0 0 30px rgba(255, 174, 216, 0.25);
+    }
+
+    .floating-title.visible { opacity: 1; }
+
+    .floating-title h2 {
+      margin: 0;
+      font-size: clamp(2.5rem, 10vw, 5rem);
+      line-height: 0.95;
+      font-weight: 500;
+    }
+
+    .floating-title span {
+      display: block;
+      margin-top: 10px;
+      color: #ffdbe9;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+    }
+
+    @media (max-width: 900px) {
+      .topbar, .bottom {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .brand { padding: 16px; border-radius: 22px; }
+      .chapter-card { width: 100%; margin-left: 0; padding: 18px; border-radius: 24px; }
+      .controls { display: grid; grid-template-columns: 1fr 1fr; }
+      button { width: 100%; }
+      .chapter-dots { align-self: center; }
+      .hint { max-width: none; text-align: left; }
+    }
+
+    @media (max-width: 560px) {
+      .brand p { display: none; }
+      .chapter-title { font-size: clamp(1.65rem, 7vw, 2.2rem); }
+      .chapter-text { min-height: 132px; font-size: 0.98rem; }
+      .hint { font-size: 0.84rem; padding: 12px 14px; }
+      .chapter-dots { padding: 11px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="scene"></div>
+    <button id="musicBtn" class="music-btn">🎵 Reproducir música</button>
+    <audio id="bgMusic" preload="auto" loop>
+      <source src="music.mp3" type="audio/mpeg" />
+    </audio>
+
+    <div class="final-burst" id="finalBurst">
+      <div class="burst-core"></div>
+      <div class="constellation-name">
+        <strong>GERALDINE</strong>
+        <span>escrita en las estrellas</span>
+      </div>
+    </div>
+
+    <div class="final-letter" id="finalLetter">
+      <div class="letter-card">
+        <div class="letter-top">
+          <h3>Nuestra carta</h3>
+          <button id="closeLetterBtn" class="letter-close">✕</button>
+        </div>
+        <p class="letter-sub">el último capítulo del corazón</p>
+        <div class="letter-body" id="letterBody"></div>
+        <div class="letter-sign">Con todo mi amor ✨</div>
+      </div>
+    </div>
+
+    <div class="floating-title visible" id="floatingTitle">
+      <h2>Entre Estrellas</h2>
+      <span>un amor contado en luz</span>
+    </div>
+
+    <div class="overlay">
+      <div class="topbar">
+        <div class="brand">
+          <h1>Entre Estrellas</h1>
+          <p>Una experiencia romántica en 3D. Cada capítulo es un recuerdo suspendido en el cielo, una caricia hecha luz y un pequeño universo creado para enamorar.</p>
+        </div>
+
+        <div class="chapter-card">
+          <div class="chapter-number" id="chapterNumber"></div>
+          <h2 class="chapter-title" id="chapterTitle"></h2>
+          <div class="chapter-text" id="chapterText"></div>
+        </div>
+      </div>
+
+      <div class="bottom">
+        <div class="controls">
+          <button class="secondary" id="prevBtn">◀ Anterior</button>
+          <button id="nextBtn">Siguiente capítulo ▶</button>
+        </div>
+
+        <div class="chapter-dots" id="chapterDots"></div>
+
+        <div class="hint">Toca los botones o desliza horizontalmente para cambiar de capítulo. Puedes arrastrar la escena para mirar el cielo más de cerca.</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.1/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.1/examples/jsm/"
+      }
+    }
+  </script>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const chapters = [
+      {
+        number: 'Capítulo 1',
+        title: 'El primer brillo',
+        text: 'Todo empezó como empiezan los milagros suaves: con una mirada que parecía pequeña, pero encendió un cielo entero. Desde ese instante, el universo aprendió a latir con tu nombre.',
+        colors: { bgTop: '#2a1036', bgBottom: '#110814', fog: '#2f143a', ambient: 1.55, point: '#ff8ac2', rain: '#ffc6df' },
+        camera: { x: 0, y: 2.2, z: 10 }
+      },
+      {
+        number: 'Capítulo 2',
+        title: 'Jardín de promesas',
+        text: 'Hubo risas que florecieron como pétalos al amanecer. Cada palabra bonita sembró algo eterno, y de pronto el corazón entendió que también existen los lugares que se sienten como hogar.',
+        colors: { bgTop: '#42155b', bgBottom: '#16081d', fog: '#4a1e58', ambient: 1.7, point: '#ffb0d4', rain: '#ffe3f1' },
+        camera: { x: 2.2, y: 2.1, z: 8.5 }
+      },
+      {
+        number: 'Capítulo 3',
+        title: 'Bajo la luna',
+        text: 'La noche se volvió un refugio hermoso. Bajo la luna, cada silencio fue una caricia, cada latido una promesa y cada segundo contigo se sintió como una eternidad delicada y perfecta.',
+        colors: { bgTop: '#1c1f4f', bgBottom: '#080b16', fog: '#18203a', ambient: 1.45, point: '#d5c2ff', rain: '#e4d8ff' },
+        camera: { x: -2.5, y: 2.6, z: 9 }
+      },
+      {
+        number: 'Capítulo 4',
+        title: 'Siempre tú',
+        text: 'Y al final de todos los caminos hermosos, sigues siendo tú: la razón del temblor bonito, del cielo encendido, del deseo inmenso de quedarme aquí, en esta historia donde todo florece cuando apareces.',
+        colors: { bgTop: '#5a173e', bgBottom: '#12040f', fog: '#4d1834', ambient: 1.85, point: '#ffd5a8', rain: '#ffe5c8' },
+        camera: { x: 0, y: 3.1, z: 7.4 }
+      },
+      {
+        number: 'Capítulo 5',
+        title: 'Para siempre en mí',
+        text: 'Si el amor pudiera verse, quizá se parecería a este instante: luces flotando despacio, un corazón suspendido en el aire y tu presencia volviendo sagrado todo lo que toca. Qué bonito es encontrarte en mi destino.',
+        colors: { bgTop: '#6a1f54', bgBottom: '#180510', fog: '#612047', ambient: 1.95, point: '#ff9ed1', rain: '#ffd8ef' },
+        camera: { x: 1.2, y: 3.3, z: 6.7 }
+      }
+    ];
+
+    const romanticWords = ['amor', 'mi cielo', 'te adoro', 'mi vida', 'besos', 'siempre', 'mi alma', 'te amo', 'mi luz', 'corazón', 'ternura', 'destino'];
+
+    const finalLetterText = `No sé en qué momento exacto dejaste de ser un instante bonito para convertirte en un lugar entero dentro de mi corazón.
+
+Pero aquí estás: en mis pensamientos más suaves, en mis días más luminosos, en esa forma inexplicable que tiene el amor de volver precioso todo lo que toca.
+
+Geraldine, si alguna vez el cielo se quedara sin estrellas, yo seguiría encontrando luz en ti.
+Porque hay personas que simplemente llegan... y hacen que la vida se sienta más tibia, más hermosa, más eterna.
+
+Gracias por existir en mi historia.
+Gracias por hacerme sentir este temblor bonito.
+Y gracias por ser ese pedacito de universo que siempre quiero mirar un rato más.`;
+
+    let currentChapter = 0;
+
+    const chapterNumberEl = document.getElementById('chapterNumber');
+    const bgMusic = document.getElementById('bgMusic');
+    const musicBtn = document.getElementById('musicBtn');
+    const finalBurstEl = document.getElementById('finalBurst');
+    const finalLetterEl = document.getElementById('finalLetter');
+    const closeLetterBtn = document.getElementById('closeLetterBtn');
+    const letterBodyEl = document.getElementById('letterBody');
+    const chapterTitleEl = document.getElementById('chapterTitle');
+    const chapterTextEl = document.getElementById('chapterText');
+    const chapterDotsEl = document.getElementById('chapterDots');
+    const floatingTitleEl = document.getElementById('floatingTitle');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const sceneEl = document.getElementById('scene');
+    letterBodyEl.textContent = '';
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    sceneEl.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2('#2f143a', 0.055);
+
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 2.2, 10);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.minDistance = 4;
+    controls.maxDistance = 14;
+    controls.maxPolarAngle = Math.PI / 2.05;
+    controls.target.set(0, 1.4, 0);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.5);
+    scene.add(ambientLight);
+
+    const pointLight = new THREE.PointLight('#ff8ac2', 18, 34, 2);
+    pointLight.position.set(0, 4, 2);
+    scene.add(pointLight);
+
+    const moonLight = new THREE.PointLight('#bba8ff', 12, 42, 2);
+    moonLight.position.set(-5, 6, -2);
+    scene.add(moonLight);
+
+    const baseGroup = new THREE.Group();
+    scene.add(baseGroup);
+
+    const ground = new THREE.Mesh(
+      new THREE.CircleGeometry(8, 80),
+      new THREE.MeshStandardMaterial({ color: '#2d1534', roughness: 0.86, metalness: 0.04, transparent: true, opacity: 0.92 })
+    );
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -0.6;
+    baseGroup.add(ground);
+
+    const centerGroup = new THREE.Group();
+    baseGroup.add(centerGroup);
+
+    const heartShape = new THREE.Shape();
+    heartShape.moveTo(0, 0.9);
+    heartShape.bezierCurveTo(0, 1.5, -1.2, 1.9, -1.8, 1.1);
+    heartShape.bezierCurveTo(-2.6, 0.05, -1.3, -1.25, 0, -2.1);
+    heartShape.bezierCurveTo(1.3, -1.25, 2.6, 0.05, 1.8, 1.1);
+    heartShape.bezierCurveTo(1.2, 1.9, 0, 1.5, 0, 0.9);
+
+    const heartGeometry = new THREE.ExtrudeGeometry(heartShape, {
+      depth: 1.15,
+      bevelEnabled: true,
+      bevelSegments: 10,
+      steps: 2,
+      bevelSize: 0.18,
+      bevelThickness: 0.2,
+      curveSegments: 80
+    });
+    heartGeometry.center();
+
+    const heartMaterial = new THREE.MeshPhysicalMaterial({
+      color: '#ff8fbc',
+      emissive: '#a01458',
+      emissiveIntensity: 0.7,
+      roughness: 0.18,
+      metalness: 0.05,
+      clearcoat: 1,
+      clearcoatRoughness: 0.12
+    });
+
+    const heartCore = new THREE.Mesh(heartGeometry, heartMaterial);
+    heartCore.position.y = 1.15;
+    heartCore.rotation.x = 0.18;
+    heartCore.scale.set(0.82, 0.82, 0.82);
+    centerGroup.add(heartCore);
+
+    const glowShell = new THREE.Mesh(
+      heartGeometry.clone(),
+      new THREE.MeshBasicMaterial({ color: '#ffb7d8', transparent: true, opacity: 0.13, side: THREE.DoubleSide })
+    );
+    glowShell.position.copy(heartCore.position);
+    glowShell.rotation.copy(heartCore.rotation);
+    glowShell.scale.set(0.9, 0.9, 0.9);
+    centerGroup.add(glowShell);
+
+    function createTextTexture(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.font = 'italic 54px Georgia';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(255, 140, 194, 0.7)';
+      ctx.shadowBlur = 24;
+      ctx.fillStyle = '#fff4fb';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      ctx.shadowBlur = 0;
+      ctx.strokeStyle = 'rgba(255, 190, 224, 0.45)';
+      ctx.lineWidth = 3;
+      ctx.strokeText(text, canvas.width / 2, canvas.height / 2);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.needsUpdate = true;
+      return texture;
+    }
+
+    const wordSprites = [];
+    let burstActive = false;
+    let burstStartTime = 0;
+    let letterTimeout = null;
+    for (let i = 0; i < 18; i++) {
+      const texture = createTextTexture(romanticWords[i % romanticWords.length]);
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false, opacity: 0.92 });
+      const sprite = new THREE.Sprite(material);
+      sprite.scale.set(2.6, 1.3, 1);
+      sprite.userData = {
+        angle: (i / 18) * Math.PI * 2,
+        radius: 2.7 + Math.random() * 1.2,
+        height: 0.8 + Math.random() * 2.8,
+        speed: 0.18 + Math.random() * 0.18,
+        wobble: Math.random() * Math.PI * 2,
+        baseScale: 1 + Math.random() * 0.18
+      };
+      wordSprites.push(sprite);
+      baseGroup.add(sprite);
+    }
+
+    const starsGeometry = new THREE.BufferGeometry();
+    const starCount = 1900;
+    const starPositions = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const i3 = i * 3;
+      starPositions[i3] = (Math.random() - 0.5) * 60;
+      starPositions[i3 + 1] = Math.random() * 30;
+      starPositions[i3 + 2] = (Math.random() - 0.5) * 60;
+    }
+    starsGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+    const stars = new THREE.Points(
+      starsGeometry,
+      new THREE.PointsMaterial({ color: '#fff3fb', size: 0.08, transparent: true, opacity: 0.95 })
+    );
+    scene.add(stars);
+
+    function createConstellationTexture(text) {
+      const canvas = document.createElement('canvas');
+      canvas.width = 2048;
+      canvas.height = 512;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#fff8fd';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.font = '600 220px Georgia';
+      ctx.shadowColor = 'rgba(255, 175, 221, 0.85)';
+      ctx.shadowBlur = 28;
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      return ctx.getImageData(0, 0, canvas.width, canvas.height);
+    }
+
+    function createConstellationPoints(text) {
+      const image = createConstellationTexture(text);
+      const positions = [];
+      for (let y = 0; y < image.height; y += 7) {
+        for (let x = 0; x < image.width; x += 7) {
+          const index = (y * image.width + x) * 4 + 3;
+          if (image.data[index] > 40 && Math.random() > 0.35) {
+            const px = (x / image.width - 0.5) * 13;
+            const py = (0.5 - y / image.height) * 3.6 + 6.2;
+            const pz = -9 + (Math.random() - 0.5) * 0.6;
+            positions.push(px, py, pz);
+          }
+        }
+      }
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({
+        color: '#fff5fc',
+        size: 0.12,
+        transparent: true,
+        opacity: 0,
+        depthWrite: false
+      });
+      const points = new THREE.Points(geometry, material);
+      points.visible = false;
+      scene.add(points);
+      return points;
+    }
+
+    const constellationPoints = createConstellationPoints('GERALDINE');
+
+    const burstGeometry = new THREE.BufferGeometry();
+    const burstCount = 260;
+    const burstPositions = new Float32Array(burstCount * 3);
+    const burstVelocities = [];
+    for (let i = 0; i < burstCount; i++) {
+      const i3 = i * 3;
+      burstPositions[i3] = 0;
+      burstPositions[i3 + 1] = 1.2;
+      burstPositions[i3 + 2] = 0;
+      const dir = new THREE.Vector3((Math.random() - 0.5), (Math.random() - 0.3), (Math.random() - 0.5)).normalize();
+      burstVelocities.push(dir.multiplyScalar(0.03 + Math.random() * 0.09));
+    }
+    burstGeometry.setAttribute('position', new THREE.BufferAttribute(burstPositions, 3));
+    const burstMaterial = new THREE.PointsMaterial({
+      color: '#ffdff0',
+      size: 0.18,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false
+    });
+    const burstPoints = new THREE.Points(burstGeometry, burstMaterial);
+    scene.add(burstPoints);
+
+    const rainCanvas = document.createElement('canvas');
+    rainCanvas.width = 128;
+    rainCanvas.height = 128;
+    const rainCtx = rainCanvas.getContext('2d');
+    rainCtx.fillStyle = '#ffd3e8';
+    rainCtx.beginPath();
+    rainCtx.moveTo(64, 98);
+    rainCtx.bezierCurveTo(24, 70, 14, 36, 36, 22);
+    rainCtx.bezierCurveTo(52, 12, 63, 24, 64, 34);
+    rainCtx.bezierCurveTo(65, 24, 76, 12, 92, 22);
+    rainCtx.bezierCurveTo(114, 36, 104, 70, 64, 98);
+    rainCtx.fill();
+    const rainTexture = new THREE.CanvasTexture(rainCanvas);
+    rainTexture.needsUpdate = true;
+
+    const heartFallCount = 320;
+    const rainGeometry = new THREE.BufferGeometry();
+    const rainPositions = new Float32Array(heartFallCount * 3);
+    const rainOffsets = [];
+    for (let i = 0; i < heartFallCount; i++) {
+      const i3 = i * 3;
+      rainPositions[i3] = (Math.random() - 0.5) * 14;
+      rainPositions[i3 + 1] = Math.random() * 8 + 0.5;
+      rainPositions[i3 + 2] = (Math.random() - 0.5) * 14;
+      rainOffsets.push({ speed: 0.4 + Math.random() * 0.7, sway: 0.2 + Math.random() * 0.5, phase: Math.random() * Math.PI * 2 });
+    }
+    rainGeometry.setAttribute('position', new THREE.BufferAttribute(rainPositions, 3));
+    const rainMaterial = new THREE.PointsMaterial({
+      map: rainTexture,
+      color: '#ffc6df',
+      size: 0.28,
+      transparent: true,
+      opacity: 0.95,
+      alphaTest: 0.2,
+      depthWrite: false
+    });
+    const heartRain = new THREE.Points(rainGeometry, rainMaterial);
+    scene.add(heartRain);
+
+    const moon = new THREE.Mesh(
+      new THREE.SphereGeometry(0.9, 32, 32),
+      new THREE.MeshStandardMaterial({ color: '#fff0fb', emissive: '#bda5ff', emissiveIntensity: 0.35, roughness: 0.9, metalness: 0.02 })
+    );
+    moon.position.set(-5, 5.5, -5);
+    scene.add(moon);
+
+    const moonGlow = new THREE.Sprite(new THREE.SpriteMaterial({ color: '#ffd7f0', transparent: true, opacity: 0.22 }));
+    moonGlow.scale.set(5.5, 5.5, 1);
+    moonGlow.position.copy(moon.position);
+    scene.add(moonGlow);
+
+    const halo = new THREE.Mesh(
+      new THREE.RingGeometry(1.2, 1.45, 64),
+      new THREE.MeshBasicMaterial({ color: '#f0d4ff', transparent: true, opacity: 0.25, side: THREE.DoubleSide })
+    );
+    halo.position.copy(moon.position);
+    halo.lookAt(camera.position);
+    scene.add(halo);
+
+    const glowHearts = [];
+    for (let i = 0; i < 18; i++) {
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ color: '#ffb7d8', transparent: true, opacity: 0.65 }));
+      sprite.position.set((Math.random() - 0.5) * 10, 0.8 + Math.random() * 5, (Math.random() - 0.5) * 10);
+      const s = 0.18 + Math.random() * 0.22;
+      sprite.scale.set(s, s, s);
+      sprite.userData = {
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.5 + Math.random() * 0.9,
+        drift: 0.15 + Math.random() * 0.25,
+        baseX: sprite.position.x,
+        baseY: sprite.position.y,
+        baseZ: sprite.position.z
+      };
+      glowHearts.push(sprite);
+      scene.add(sprite);
+    }
+
+    function lerpColor(a, b, t) {
+      return new THREE.Color(a).lerp(new THREE.Color(b), t);
+    }
+
+    function createDots() {
+      chapterDotsEl.innerHTML = '';
+      chapters.forEach((_, index) => {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (index === currentChapter ? ' active' : '');
+        dot.addEventListener('click', () => setChapter(index));
+        chapterDotsEl.appendChild(dot);
+      });
+    }
+
+    function updateUI() {
+      const chapter = chapters[currentChapter];
+      chapterNumberEl.textContent = chapter.number;
+      chapterTitleEl.textContent = chapter.title;
+      chapterTextEl.textContent = chapter.text;
+      [...chapterDotsEl.children].forEach((dot, i) => dot.classList.toggle('active', i === currentChapter));
+      prevBtn.style.opacity = currentChapter === 0 ? '0.6' : '1';
+      nextBtn.textContent = currentChapter === chapters.length - 1 ? 'Abrir carta final 💌' : 'Siguiente capítulo ▶';
+    }
+
+    function setChapter(index) {
+      currentChapter = (index + chapters.length) % chapters.length;
+      if (currentChapter !== chapters.length - 1) {
+        hideLetter();
+        finalBurstEl.classList.remove('visible');
+        constellationPoints.visible = false;
+        constellationPoints.material.opacity = 0;
+        burstPoints.material.opacity = 0;
+        burstActive = false;
+      }
+      updateUI();
+    }
+
+    function typeLetter(text) {
+      letterBodyEl.textContent = '';
+      let i = 0;
+      const timer = setInterval(() => {
+        letterBodyEl.textContent += text[i] || '';
+        i += 1;
+        if (i >= text.length) clearInterval(timer);
+      }, 22);
+    }
+
+    function showLetter() {
+      finalLetterEl.classList.add('visible');
+      typeLetter(finalLetterText);
+    }
+
+    function triggerFinalSequence() {
+      if (burstActive) return;
+      burstActive = true;
+      burstStartTime = performance.now();
+      finalBurstEl.classList.add('visible');
+      constellationPoints.visible = true;
+      constellationPoints.material.opacity = 0;
+      burstPoints.material.opacity = 1;
+
+      const positions = burstGeometry.attributes.position.array;
+      for (let i = 0; i < burstCount; i++) {
+        const i3 = i * 3;
+        positions[i3] = 0;
+        positions[i3 + 1] = 1.2;
+        positions[i3 + 2] = 0;
+      }
+      burstGeometry.attributes.position.needsUpdate = true;
+
+      if (letterTimeout) clearTimeout(letterTimeout);
+      letterTimeout = setTimeout(() => {
+        showLetter();
+      }, 2600);
+    }
+
+    function hideLetter() {
+      finalLetterEl.classList.remove('visible');
+    }
+
+    prevBtn.addEventListener('click', () => setChapter(currentChapter - 1));
+    nextBtn.addEventListener('click', () => {
+      if (currentChapter === chapters.length - 1) {
+        triggerFinalSequence();
+      } else {
+        setChapter(currentChapter + 1);
+      }
+    });
+    closeLetterBtn.addEventListener('click', hideLetter);
+    finalLetterEl.addEventListener('click', (event) => {
+      if (event.target === finalLetterEl) hideLetter();
+    });
+
+    createDots();
+
+    bgMusic.volume = 0.55;
+
+    async function toggleMusic() {
+      try {
+        if (bgMusic.paused) {
+          await bgMusic.play();
+          musicBtn.textContent = '⏸ Pausar música';
+        } else {
+          bgMusic.pause();
+          musicBtn.textContent = '🎵 Reproducir música';
+        }
+      } catch (error) {
+        console.error('No se pudo reproducir el mp3:', error);
+        musicBtn.textContent = '🎵 Toca para reproducir';
+      }
+    }
+
+    musicBtn.addEventListener('click', toggleMusic);
+    updateUI();
+    setTimeout(() => floatingTitleEl.classList.remove('visible'), 3600);
+
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const time = clock.getElapsedTime();
+      const chapter = chapters[currentChapter];
+
+      scene.fog.color.copy(lerpColor(scene.fog.color, chapter.colors.fog, 0.03));
+      scene.fog.density += (0.05 - scene.fog.density) * 0.02;
+      ambientLight.intensity += (chapter.colors.ambient - ambientLight.intensity) * 0.03;
+      pointLight.color.lerp(new THREE.Color(chapter.colors.point), 0.035);
+      rainMaterial.color.lerp(new THREE.Color(chapter.colors.rain), 0.04);
+      moonGlow.material.color.lerp(new THREE.Color(chapter.colors.point), 0.03);
+      ground.material.color.lerp(new THREE.Color(chapter.colors.bgTop), 0.02);
+      heartMaterial.color.lerp(new THREE.Color(chapter.colors.point), 0.03);
+      heartMaterial.emissive.lerp(new THREE.Color(chapter.colors.point).multiplyScalar(0.35), 0.03);
+      glowShell.material.color.lerp(new THREE.Color(chapter.colors.point), 0.03);
+
+      const cam = chapter.camera;
+      camera.position.x += (cam.x - camera.position.x) * 0.012;
+      camera.position.y += (cam.y - camera.position.y) * 0.012;
+      camera.position.z += (cam.z - camera.position.z) * 0.012;
+
+      centerGroup.rotation.y += 0.0038;
+      centerGroup.position.y = 1 + Math.sin(time * 1.2) * 0.08;
+      heartCore.rotation.z = Math.sin(time * 0.8) * 0.05;
+      heartCore.rotation.x = 0.18 + Math.cos(time * 0.5) * 0.03;
+      glowShell.rotation.z = heartCore.rotation.z;
+      glowShell.rotation.x = heartCore.rotation.x;
+      let pulse = 0.82 + Math.sin(time * 2.2) * 0.03;
+      if (burstActive) {
+        const burstT = Math.min((performance.now() - burstStartTime) / 2200, 1);
+        pulse = 0.82 + Math.sin(time * 5.6) * 0.08 + burstT * 0.28;
+        heartMaterial.emissiveIntensity = 0.7 + burstT * 1.6;
+        glowShell.material.opacity = 0.13 + burstT * 0.35;
+        if (burstT > 0.2) centerGroup.rotation.y += 0.024;
+        if (burstT >= 1) {
+          burstActive = false;
+          finalBurstEl.classList.remove('visible');
+          burstPoints.material.opacity = 0;
+          constellationPoints.material.opacity = 1;
+        }
+      } else {
+        heartMaterial.emissiveIntensity += (0.7 - heartMaterial.emissiveIntensity) * 0.05;
+        glowShell.material.opacity += (0.13 - glowShell.material.opacity) * 0.05;
+      }
+      heartCore.scale.set(pulse, pulse, pulse);
+      glowShell.scale.set(pulse * 1.1, pulse * 1.1, pulse * 1.1);
+
+      wordSprites.forEach((sprite, index) => {
+        const data = sprite.userData;
+        const a = data.angle + time * data.speed;
+        sprite.position.x = Math.cos(a) * data.radius;
+        sprite.position.z = Math.sin(a) * data.radius;
+        sprite.position.y = data.height + Math.sin(time * 1.4 + data.wobble) * 0.22;
+        const scale = data.baseScale + Math.sin(time * 2 + index) * 0.05;
+        sprite.scale.set(2.6 * scale, 1.3 * scale, 1);
+        sprite.material.opacity = 0.72 + (Math.sin(time * 1.8 + index) + 1) * 0.1;
+      });
+
+      glowHearts.forEach((sprite, i) => {
+        const d = sprite.userData;
+        sprite.position.x = d.baseX + Math.sin(time * d.speed + d.phase) * d.drift;
+        sprite.position.y = d.baseY + Math.cos(time * 0.9 + d.phase) * 0.12;
+        sprite.position.z = d.baseZ + Math.cos(time * d.speed + d.phase) * d.drift;
+        const s = 0.18 + (Math.sin(time * 2 + i) + 1) * 0.08;
+        sprite.scale.set(s, s, s);
+        sprite.material.opacity = 0.35 + (Math.sin(time * 2.2 + d.phase) + 1) * 0.18;
+      });
+
+      const burstPos = burstGeometry.attributes.position.array;
+      if (burstPoints.material.opacity > 0.001) {
+        for (let i = 0; i < burstCount; i++) {
+          const i3 = i * 3;
+          const vel = burstVelocities[i];
+          burstPos[i3] += vel.x;
+          burstPos[i3 + 1] += vel.y;
+          burstPos[i3 + 2] += vel.z;
+        }
+        burstGeometry.attributes.position.needsUpdate = true;
+        burstPoints.material.opacity *= 0.985;
+      }
+
+      if (constellationPoints.visible) {
+        constellationPoints.material.opacity += ((burstActive ? 0.25 : 1) - constellationPoints.material.opacity) * 0.035;
+      }
+
+      const pos = rainGeometry.attributes.position.array;
+      for (let i = 0; i < heartFallCount; i++) {
+        const i3 = i * 3;
+        const data = rainOffsets[i];
+        pos[i3] += Math.sin(time * data.speed + data.phase) * 0.002;
+        pos[i3 + 1] -= 0.014 * data.speed;
+        pos[i3 + 2] += Math.cos(time * data.sway + data.phase) * 0.003;
+        if (pos[i3 + 1] < -0.4) {
+          pos[i3] = (Math.random() - 0.5) * 14;
+          pos[i3 + 1] = 8 + Math.random() * 2;
+          pos[i3 + 2] = (Math.random() - 0.5) * 14;
+        }
+      }
+      rainGeometry.attributes.position.needsUpdate = true;
+
+      stars.rotation.y += 0.00035;
+      stars.rotation.x = Math.sin(time * 0.08) * 0.04;
+      moon.position.y = 5.5 + Math.sin(time * 0.45) * 0.22;
+      moonGlow.position.copy(moon.position);
+      moonGlow.scale.setScalar(5.3 + Math.sin(time * 1.2) * 0.2);
+      halo.position.copy(moon.position);
+      halo.lookAt(camera.position);
+      halo.rotation.z += 0.003;
+
+      document.body.style.background = `radial-gradient(circle at top, rgba(255, 192, 203, 0.28), transparent 30%), linear-gradient(180deg, ${chapter.colors.bgTop} 0%, ${chapter.colors.bgBottom} 55%, #09050c 100%)`;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    window.addEventListener('touchstart', (event) => {
+      touchStartX = event.changedTouches[0].clientX;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (event) => {
+      touchEndX = event.changedTouches[0].clientX;
+      const diff = touchEndX - touchStartX;
+      if (Math.abs(diff) > 50) {
+        if (diff < 0) {
+          if (currentChapter === chapters.length - 1) triggerFinalSequence();
+          else setChapter(currentChapter + 1);
+        }
+        if (diff > 0) setChapter(currentChapter - 1);
+      }
+    }, { passive: true });
+  </script>
+</body>
+</html>
